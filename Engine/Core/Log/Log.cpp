@@ -32,3 +32,19 @@ void Log::Warning(const char *format, ...)
 void Log::Error(const char *format, ...)
 {
 }
+
+auto Debug(const char *format, ...) -> void
+{
+}
+
+auto Info(const char *format, ...) -> void
+{
+}
+
+auto Warning(const char *format, ...) -> void
+{
+}
+
+auto Error(const char *format, ...) -> void
+{
+}
