@@ -42,7 +42,7 @@ void SwapChain::CreateSwapChain()
         ComPtr<ID3D12Resource> backBuffer;
         ThrowIfFailed(m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffer)));
         ResourceInfo info;
-        info.name = "BackBuffer" + std::to_string(i);
+        info.name = "SwapChain Image" + std::to_string(i);
         info.usage = ResourceUsage::RTV;
         auto allocInfo = allocator->RegisterResource(backBuffer, info);
         m_RTVHandles[i] = allocInfo.RTV.value();

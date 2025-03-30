@@ -4,7 +4,8 @@
 namespace ProtoEngine::rhi::dx12 {
 
 DefaultBuffer::DefaultBuffer(ID3D12Device *device, uint64 size, std::string_view name) :
-    Buffer(name)
+    Buffer(name),
+    m_Size(size)
 
 {
     if (name.empty()) {
@@ -26,7 +27,7 @@ void DefaultBuffer::Init(ID3D12Device *device)
         &heapProperties,
         D3D12_HEAP_FLAG_NONE,
         &resourceDesc,
-        D3D12_RESOURCE_STATE_COMMON,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr,
         IID_PPV_ARGS(&m_Resource)));
 }

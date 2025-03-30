@@ -1,5 +1,7 @@
 #pragma once
 #include <stdafx.h>
+#include "ProtoEngine/RHI/DX12/Resource/DefaultBuffer.h"
+#include "ProtoEngine/RHI/DX12/Runtime/Command.h"
 #include "ProtoEngine/Resource/Mesh/Mesh.h"
 #include "ProtoEngine/RHI/DX12/Resource/UploadBuffer.h"
 
@@ -13,7 +15,7 @@ public:
     void AddVertices(std::vector<Vertex> &vertices);
     void AddIndices(std::vector<uint32> &indices);
 
-    void Upload();
+    void Upload(rhi::dx12::GPUContext *context, rhi::dx12::CommandPool *pool);
 
     D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView() const;
     D3D12_INDEX_BUFFER_VIEW GetIndexBufferView() const;
@@ -24,8 +26,11 @@ private:
     std::vector<Vertex> m_Vertices;
     std::vector<uint32> m_Indices;
 
-    std::unique_ptr<UploadBuffer> m_VertexBuffer;
-    std::unique_ptr<UploadBuffer> m_IndexBuffer;
+    std::unique_ptr<UploadBuffer> m_VBUploader;
+    std::unique_ptr<UploadBuffer> m_IBUploader;
+
+    std::unique_ptr<DefaultBuffer> m_VBuffer;
+    std::unique_ptr<DefaultBuffer> m_IBuffer;
 };
 
 }; // namespace ProtoEngine::rhi::dx12

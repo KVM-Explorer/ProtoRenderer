@@ -5,6 +5,20 @@
 #include "ProtoEngine/RHI/DX12/Resource/ResourceAllocator.h"
 namespace ProtoEngine::rhi::dx12 {
 
+D3D12_COMMAND_LIST_TYPE Convert(CommandType type)
+{
+    switch (type) {
+    case CommandType::Compute:
+        return D3D12_COMMAND_LIST_TYPE_COMPUTE;
+    case CommandType::Copy:
+        return D3D12_COMMAND_LIST_TYPE_COPY;
+    case CommandType::Graphics:
+        return D3D12_COMMAND_LIST_TYPE_DIRECT;
+    default:
+        PE_THROW("Invalid Command Type");
+    }
+}
+
 Command::~Command()
 {
     m_Pool->Free(m_Type, m_PoolIndex);
@@ -65,13 +79,20 @@ void Command::ClearRT(std::vector<uint32> renderTargets, std::optional<uint32> d
 void Command::DrawCall(D3D12_VERTEX_BUFFER_VIEW vertexBufferView, D3D12_INDEX_BUFFER_VIEW indexBufferView)
 {
     m_CommandList->IASetVertexBuffers(0, 1, &vertexBufferView);
-    m_CommandList->IASetIndexBuffer(&indexBufferView);
-    m_CommandList->DrawIndexedInstanced(3, 1, 0, 0, 0);
+    // m_CommandList->IASetIndexBuffer(&indexBufferView);
+    // m_CommandList->DrawIndexedInstanced(3, 1, 0, 0, 0);
+    m_CommandList->DrawInstanced(3, 1, 0, 0);
+    // TODO: 重构DrawCall
 }
 
 void Command::ResourceBarrier(std::vector<D3D12_RESOURCE_BARRIER> barriers)
 {
     m_CommandList->ResourceBarrier(static_cast<uint32>(barriers.size()), barriers.data());
+}
+
+void Command::Upload(ID3D12Resource *dst, ID3D12Resource *src, uint64 size)
+{
+    m_CommandList->CopyBufferRegion(dst, 0, src, 0, size);
 }
 
 CommandPool::CommandPool(GPUContext &context) :
@@ -94,7 +115,7 @@ Command CommandPool::Allocate(CommandType type, uint32 taskOrder)
         auto &allocator = m_Allocators[static_cast<uint32>(type)][index];
         allocator->Reset();
 
-        auto cmdList = GetCommandList(allocator.Get(), static_cast<D3D12_COMMAND_LIST_TYPE>(type));
+        auto cmdList = GetCommandList(allocator.Get(), static_cast<CommandType>(type));
         // Bind cmdList to Command
         return Command(index, type, cmdList, this);
     }
@@ -131,7 +152,7 @@ Command CommandPool::Allocate(CommandType type, uint32 taskOrder)
     ComPtr<ID3D12GraphicsCommandList> commandList;
 
     ThrowIfFailed(device->CreateCommandAllocator(listType, IID_PPV_ARGS(&allocator)));
-    auto cmdList = GetCommandList(allocator.Get(), listType);
+    auto cmdList = GetCommandList(allocator.Get(), type);
 
     auto index = static_cast<uint32>(m_Allocators[static_cast<uint32>(type)].size());
     m_Allocators[static_cast<uint32>(type)].push_back(allocator);
@@ -153,24 +174,30 @@ void CommandPool::EndFrame()
     std::swap(m_FreeCommands, m_UsedCommands);
 }
 
-ID3D12GraphicsCommandList *CommandPool::GetCommandList(ID3D12CommandAllocator *allocator, D3D12_COMMAND_LIST_TYPE type)
+ID3D12GraphicsCommandList *CommandPool::GetCommandList(ID3D12CommandAllocator *allocator, CommandType type)
 {
-    if (!m_FreeCommands.empty()) {
-        auto cmdList = m_FreeCommands.front();
-        m_FreeCommands.pop();
+    auto &freeCommands = m_FreeCommands[static_cast<uint32>(type)];
+    auto &usedCommands = m_UsedCommands[static_cast<uint32>(type)];
+    if (!freeCommands.empty()) {
+        auto cmdList = freeCommands.front();
+        freeCommands.pop();
         cmdList->Reset(allocator, nullptr);
         // cmdList->Close();
 
-        m_UsedCommands.push(cmdList);
+        usedCommands.push(cmdList);
 
         return cmdList.Get();
     } else {
         ComPtr<ID3D12GraphicsCommandList> cmdList;
         auto device = m_Context.m_Device->Get();
-        ThrowIfFailed(device->CreateCommandList(0, type, allocator, nullptr, IID_PPV_ARGS(&cmdList)));
+
+        D3D12_COMMAND_LIST_TYPE listType = Convert(type);
+
+        ThrowIfFailed(device->CreateCommandList(0, listType, allocator, nullptr, IID_PPV_ARGS(&cmdList)));
         // ThrowIfFailed(cmdList->Close());
 
-        m_UsedCommands.push(cmdList);
+        // usedCommands.push(cmdList);
+        usedCommands.push(cmdList);
         return cmdList.Get();
     }
 }

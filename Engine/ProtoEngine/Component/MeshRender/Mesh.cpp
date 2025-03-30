@@ -25,8 +25,11 @@ void Mesh::LoadMesh(resource::MeshType type)
 
     m_MeshContainer->AddVertices(mesh->GetVertices());
     m_MeshContainer->AddIndices(mesh->GetIndices());
+}
 
-    m_MeshContainer->Upload();
+void Mesh::UploadGPU(rhi::dx12::GPUContext *context, rhi::dx12::CommandPool *pool)
+{
+    m_MeshContainer->Upload(context, pool);
 }
 
 void Mesh::Render(rhi::dx12::Command &command)

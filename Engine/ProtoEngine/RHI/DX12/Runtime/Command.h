@@ -28,7 +28,7 @@ enum class CommandType {
 class CommandPool;
 class Command {
 public:
-    Command(uint32 poolIndex, CommandType type, ID3D12GraphicsCommandList *commandList,CommandPool *pool) :
+    Command(uint32 poolIndex, CommandType type, ID3D12GraphicsCommandList *commandList, CommandPool *pool) :
         m_PoolIndex(poolIndex), m_Type(type),
         m_CommandList(commandList),
         m_Pool(pool)
@@ -48,7 +48,10 @@ public:
     CommandType Type() const { return m_Type; }
     ID3D12CommandList *Get() const { return m_CommandList; }
 
-    void Close() { m_CommandList->Close(); }
+    void Upload(ID3D12Resource *dst, ID3D12Resource *src, uint64 size);
+
+    void Begin() {}
+    void End() { m_CommandList->Close(); }
 
 private:
     uint32 m_TaskOrder;
@@ -77,18 +80,20 @@ public:
     void EndFrame();
 
 private:
-    ID3D12GraphicsCommandList *GetCommandList(ID3D12CommandAllocator *allocator, D3D12_COMMAND_LIST_TYPE type);
+    ID3D12GraphicsCommandList *GetCommandList(ID3D12CommandAllocator *allocator, CommandType type);
 
     GPUContext &m_Context;
 
+    static constexpr uint32 m_TypeNum = static_cast<uint32>(CommandType::TypeNum);
+
     // Allocator
-    std::array<std::queue<uint32>, static_cast<uint32>(CommandType::TypeNum)> m_FreeIndices;
-    std::array<std::unordered_map<uint32, bool>, static_cast<uint32>(CommandType::TypeNum)> m_UsedIndices;
-    std::array<std::vector<ComPtr<ID3D12CommandAllocator>>, static_cast<uint32>(CommandType::TypeNum)> m_Allocators; // 帧、并行数据
+    std::array<std::queue<uint32>, m_TypeNum> m_FreeIndices;
+    std::array<std::unordered_map<uint32, bool>, m_TypeNum> m_UsedIndices;
+    std::array<std::vector<ComPtr<ID3D12CommandAllocator>>, m_TypeNum> m_Allocators; // 帧、并行数据
 
     // Command List
-    std::queue<ComPtr<ID3D12GraphicsCommandList>> m_FreeCommands;
-    std::queue<ComPtr<ID3D12GraphicsCommandList>> m_UsedCommands;
+    std::array<std::queue<ComPtr<ID3D12GraphicsCommandList>>, m_TypeNum> m_FreeCommands;
+    std::array<std::queue<ComPtr<ID3D12GraphicsCommandList>>, m_TypeNum> m_UsedCommands;
 };
 
 } // namespace ProtoEngine::rhi::dx12

@@ -31,11 +31,11 @@ void GPULayout::Init(ID3D12Device *device)
     pipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     pipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
     pipelineStateDesc.DepthStencilState.DepthEnable = false;
+    pipelineStateDesc.DepthStencilState.StencilEnable = false;
     pipelineStateDesc.SampleMask = UINT_MAX;
     pipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateDesc.NumRenderTargets = 1;
     pipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    // pipelineStateDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
     pipelineStateDesc.SampleDesc.Count = 1;
     ThrowIfFailed(device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_PSO)));
 }
@@ -79,6 +79,7 @@ void BasicTriangleApp::LoadAssets()
 
     meshComponent->Init(context->GetDevice());
     meshComponent->LoadMesh(ProtoEngine::resource::MeshType::Triangle);
+    meshComponent->UploadGPU(context.get(), cmdPool.get());
 
     entity.AddComponent(meshComponent);
 
@@ -94,6 +95,7 @@ void BasicTriangleApp::Record()
     auto command = cmdPool->Allocate(ProtoEngine::rhi::dx12::CommandType::Graphics, 0);
 
     // Begin Render
+    command.Begin();
     command.BindGPULayout(layout.get());
     command.SetScreenView({1920, 1080}, {1920, 1080});
 
@@ -113,6 +115,7 @@ void BasicTriangleApp::Record()
     // Convert
     auto barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(resource, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
     command.ResourceBarrier({barrier2});
+    command.End();
 
     context->Submit({&command});
 }
@@ -120,19 +123,16 @@ void BasicTriangleApp::Record()
 void BasicTriangleApp::Render()
 {
     Record();
-    frameSync->Signal(context.get());
 
     swapchain->Present();
 
+    frameSync->Signal(context.get());
     frameSync->Wait();
-
-    // Sleep(100);
-
-    // TODO: cmdPool->Free(ProtoEngine::rhi::dx12::CommandType::Graphics, command.ID());
 }
 
 void BasicTriangleApp::AfterTick()
 {
+    // TODO: 重新设计Command的回收和Allocator-Resource的回收
     cmdPool->EndFrame();
     swapchain->MoveNextFrame();
 }

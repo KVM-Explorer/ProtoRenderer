@@ -13,6 +13,9 @@ public:
     void Init(ID3D12Device *device);
     void LoadMesh(std::string path);
     void LoadMesh(resource::MeshType type);
+
+
+    void UploadGPU(rhi::dx12::GPUContext *context,rhi::dx12::CommandPool *pool);
     void Render(rhi::dx12::Command &command);
 
 private:

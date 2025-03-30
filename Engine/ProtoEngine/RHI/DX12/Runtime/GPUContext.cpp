@@ -45,7 +45,6 @@ void GPUContext::Submit(std::vector<Command *> commands)
     // Finish and Free Command
     std::vector<ID3D12CommandList *> cmdLists;
     for (auto &command : commands) {
-        command->Close();
         cmdLists.push_back(command->Get());
     }
 
@@ -60,6 +59,7 @@ void GPUContext::Submit(std::vector<Command *> commands)
     }
     case CommandType::Copy: {
         copyQueue->ExecuteCommandLists(static_cast<UINT>(cmdLists.size()), cmdLists.data());
+        break;
     }
     default: {
         PE_THROW("Unknown command type");
