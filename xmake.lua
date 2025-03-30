@@ -11,8 +11,11 @@ add_rules("plugin.compile_commands.autoupdate", {outputdir = ".vscode"})
 
 -- set_warnings("all", "error")
 
+set_targetdir("./bin")
 
 includes("**/xmake.lua")
+
+
 
 --
 -- @code
