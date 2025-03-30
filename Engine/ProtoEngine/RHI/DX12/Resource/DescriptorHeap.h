@@ -21,8 +21,8 @@ protected:
     uint32 m_DescriptorCount = 0;
     bool m_ShaderVisible;
     uint32 m_DescriptorSize;
-    uint32 m_CPUAddress;
-    uint32 m_GPUAddress;
+    D3D12_CPU_DESCRIPTOR_HANDLE m_CPUAddress;
+    D3D12_GPU_DESCRIPTOR_HANDLE m_GPUAddress;
 };
 
 class RTVHeap : public DescriptorHeap {

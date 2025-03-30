@@ -2,15 +2,25 @@
 #include "ProtoEngine/Resource/Mesh/TriangleMesh.h"
 namespace ProtoEngine::Component {
 
+void Mesh::Init(ID3D12Device *device)
+{
+    m_MeshContainer = std::make_unique<rhi::dx12::MeshContainer>(device);
+}
 
-void Mesh::Init(resource::MeshType type)
+void Mesh::LoadMesh(std::string path)
+{
+    PE_THROW("Mesh loading is not implemented yet");
+}
+
+void Mesh::LoadMesh(resource::MeshType type)
 {
     std::shared_ptr<resource::IMesh> mesh = nullptr;
     switch (type) {
-        case resource::MeshType::Triangle:
-            mesh = std::make_shared<resource::TriangleMesh>();
-        default:
-            PE_THROW("Not implemented");
+    case resource::MeshType::Triangle:
+        mesh = std::make_shared<resource::TriangleMesh>();
+        break;
+    default:
+        PE_THROW("Not implemented");
     }
 
     m_MeshContainer->AddVertices(mesh->GetVertices());

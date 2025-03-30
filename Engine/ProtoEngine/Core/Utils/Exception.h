@@ -16,7 +16,7 @@ private:
 
 #define PE_THROW(message) throw ProtoEngine::Core::Utils::Exception(message, __FILE__, __LINE__)
 
-#define T(condition)          \
+#define ThrowIfFailed(condition)      \
     if ((condition < 0)) {            \
         PE_THROW("Assertion failed"); \
     }

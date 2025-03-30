@@ -10,8 +10,9 @@ class Mesh : public IComponent {
 public:
     ComponentType GetType() const override { return ComponentType::Mesh; }
 
-    void Init(std::string path);
-    void Init(resource::MeshType type);
+    void Init(ID3D12Device *device);
+    void LoadMesh(std::string path);
+    void LoadMesh(resource::MeshType type);
     void Render(rhi::dx12::Command &command);
 
 private:

@@ -44,14 +44,15 @@ void Device::Init()
 {
     UINT dxgiFactoryFlags = 0;
 
-    // ID3D12Debug debugController;
-    // if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
-    //     debugController->EnableDebugLayer();
-    // }
+    ComPtr<ID3D12Debug> debugController;
+    if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
+        debugController->EnableDebugLayer();
+    }
 
-    // ID3D12Debug1 debug1;
-    // debugController->QueryInterface(IID_PPV_ARGS(&debug1));
-    // debug1->SetEnableGPUBasedValidation(true);
+    ComPtr<ID3D12Debug1> debug1;
+    debugController->QueryInterface(IID_PPV_ARGS(&debug1));
+    debug1->SetEnableGPUBasedValidation(true);
+    debug1->SetEnableSynchronizedCommandQueueValidation(true);
 
     dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
 

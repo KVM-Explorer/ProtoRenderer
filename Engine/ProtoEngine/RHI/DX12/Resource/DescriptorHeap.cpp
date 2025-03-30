@@ -5,6 +5,7 @@ namespace ProtoEngine::rhi::dx12 {
 DescriptorHeap::DescriptorHeap(ID3D12Device *device, D3D12_DESCRIPTOR_HEAP_TYPE type, uint32 numDescriptors, bool isShaderVisible) :
     m_Type(type),
     m_DescriptorRange(numDescriptors),
+    m_Device(device),
     m_ShaderVisible(isShaderVisible),
     m_DescriptorSize(device->GetDescriptorHandleIncrementSize(type))
 
@@ -16,22 +17,23 @@ DescriptorHeap::DescriptorHeap(ID3D12Device *device, D3D12_DESCRIPTOR_HEAP_TYPE 
 
     device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_Heap));
 
-    m_CPUAddress = m_Heap->GetCPUDescriptorHandleForHeapStart().ptr;
-    m_GPUAddress = m_Heap->GetGPUDescriptorHandleForHeapStart().ptr;
+    m_CPUAddress = m_Heap->GetCPUDescriptorHandleForHeapStart();
+    m_GPUAddress = m_Heap->GetGPUDescriptorHandleForHeapStart();
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE DescriptorHeap::GetCPUHandle(uint32 index) const
 {
-    return {m_CPUAddress + index * m_DescriptorSize};
+    return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_CPUAddress, index, m_DescriptorSize);
 }
 
 D3D12_GPU_DESCRIPTOR_HANDLE DescriptorHeap::GetGPUHandle(uint32 index) const
 {
-    return {m_GPUAddress + index * m_DescriptorSize};
+    return CD3DX12_GPU_DESCRIPTOR_HANDLE(m_GPUAddress, index, m_DescriptorSize);
 }
 
 RTVHeap::RTVHeap(ID3D12Device *device, uint32 numDescriptors) :
-    DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, numDescriptors, false) {}
+    DescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, numDescriptors, false)
+{}
 
 uint32 RTVHeap::Add(ID3D12Resource *resource, std::optional<D3D12_RENDER_TARGET_VIEW_DESC> &descInfo)
 {

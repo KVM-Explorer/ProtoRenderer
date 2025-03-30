@@ -14,7 +14,7 @@ public:
 
     std::tuple<uint32, uint32> GetCurrentRT() const { return {m_RTVHandles[m_CurrentFrameIndex], m_ResourceIndices[m_CurrentFrameIndex]}; }
     uint32 GetCurrentFrameIndex() const { return m_CurrentFrameIndex; }
-    uint32 MoveNextFrame() { return m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % m_FrameCount; }
+    void MoveNextFrame() { m_CurrentFrameIndex = (m_CurrentFrameIndex + 1) % m_FrameCount; }
     static uint32 GetFrameCount() { return m_FrameCount; }
     uint32 GetWidth() const { return m_Width; }
 

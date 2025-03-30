@@ -6,16 +6,16 @@ namespace ProtoEngine::rhi::dx12 {
 FrameSyncPoint::FrameSyncPoint(ID3D12Device *device)
 {
     ComPtr<ID3D12Fence> fence;
-    PE_ASSERT(SUCCEEDED(device->CreateFence(0,
-                                            D3D12_FENCE_FLAG_NONE,
-                                            IID_PPV_ARGS(&m_Fence))));
+    ThrowIfFailed(device->CreateFence(0,
+                                      D3D12_FENCE_FLAG_NONE,
+                                      IID_PPV_ARGS(&m_Fence)));
 
     m_FenceValue = 1;
 }
 
 void FrameSyncPoint::Signal(GPUContext *context)
 {
-    context->GfxQueue->Signal(m_Fence.Get(), m_FenceValue++);
+    context->GfxQueue->Signal(m_Fence.Get(), m_FenceValue);
     m_FenceValue++;
 }
 

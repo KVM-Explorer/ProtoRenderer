@@ -4,7 +4,11 @@ namespace ProtoEngine::rhi::dx12 {
 
 class GPUInputLayout {
 public:
-    virtual ~GPUInputLayout() = default;
+    virtual ~GPUInputLayout()
+    {
+        m_Signature.Reset();
+        m_PSO.Reset();
+    };
 
     virtual void Init(ID3D12Device *device) = 0;
 

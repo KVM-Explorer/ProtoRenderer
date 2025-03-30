@@ -17,7 +17,7 @@ void UploadBuffer::Init(ID3D12Device *device)
     D3D12_HEAP_PROPERTIES heapProp = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
     D3D12_RESOURCE_DESC resDesc = CD3DX12_RESOURCE_DESC::Buffer(m_Size);
 
-    PE_ASSERT(device->CreateCommittedResource(
+    ThrowIfFailed(device->CreateCommittedResource(
         &heapProp,
         D3D12_HEAP_FLAG_NONE,
         &resDesc,
@@ -25,7 +25,7 @@ void UploadBuffer::Init(ID3D12Device *device)
         nullptr,
         IID_PPV_ARGS(&m_Resource)));
 
-    PE_ASSERT(m_Resource->Map(0, nullptr, &m_MappedData));
+    ThrowIfFailed(m_Resource->Map(0, nullptr, &m_MappedData));
 }
 
 void UploadBuffer::CopyData(const void *data, UINT64 size, UINT64 offset)

@@ -22,6 +22,7 @@ LRESULT CALLBACK Win32WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
     case WM_PAINT: // 处理窗口重绘事件
         app->Update();
         app->Render();
+        app->AfterTick();
         return 0;
     default:
         return DefWindowProc(hwnd, uMsg, wParam, lParam);

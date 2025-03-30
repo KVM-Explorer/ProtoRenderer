@@ -32,20 +32,21 @@ void SwapChain::CreateSwapChain()
     auto factory = m_Context.m_Device->GetFactory();
     auto queue = m_Context.GfxQueue.Get();
     auto handle = ProtoEngine::Platform::Win32::Application::Get()->GetHandle();
-    PE_ASSERT(factory->CreateSwapChainForHwnd(queue, handle, &swapchainDesc, nullptr, nullptr, &swapchain1));
+    ThrowIfFailed(factory->CreateSwapChainForHwnd(queue, handle, &swapchainDesc, nullptr, nullptr, &swapchain1));
     swapchain1->QueryInterface(IID_PPV_ARGS(&m_SwapChain));
-    PE_ASSERT(factory->MakeWindowAssociation(handle, DXGI_MWA_NO_ALT_ENTER));
-    PE_ASSERT(swapchain1.As(&m_SwapChain));
+    ThrowIfFailed(factory->MakeWindowAssociation(handle, DXGI_MWA_NO_ALT_ENTER));
+    ThrowIfFailed(swapchain1.As(&m_SwapChain));
 
     auto allocator = ResourceAllocator::GetInstance();
     for (int i = 0; i < m_FrameCount; i++) {
         ComPtr<ID3D12Resource> backBuffer;
-        PE_ASSERT(m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffer)));
+        ThrowIfFailed(m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffer)));
         ResourceInfo info;
         info.name = "BackBuffer" + std::to_string(i);
         info.usage = ResourceUsage::RTV;
         auto allocInfo = allocator->RegisterResource(backBuffer, info);
         m_RTVHandles[i] = allocInfo.RTV.value();
+        m_ResourceIndices[i] = allocInfo.resourceIndex;
     }
 
     PE_LOG_INFO("SwapChain Created");
@@ -79,7 +80,7 @@ void SwapChain::Resize(uint32 &width, uint32 &height)
     swapchainDesc.Height = swapchainDescOld.BufferDesc.Height;
     swapchainDesc.Format = swapchainDescOld.BufferDesc.Format;
     swapchainDesc.Flags = swapchainDescOld.Flags;
-    PE_ASSERT(m_SwapChain->ResizeBuffers(m_FrameCount, width, height, swapchainDesc.Format, swapchainDesc.Flags));
+    ThrowIfFailed(m_SwapChain->ResizeBuffers(m_FrameCount, width, height, swapchainDesc.Format, swapchainDesc.Flags));
 
     PE_LOG_INFO("SwapChain Resized");
 }

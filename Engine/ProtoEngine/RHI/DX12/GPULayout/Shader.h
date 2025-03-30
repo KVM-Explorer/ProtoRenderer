@@ -22,6 +22,7 @@ struct ShaderInfo {
     ShaderType type;
 };
 
+// Visitor
 class Shader {
 public:
     Shader(ShaderInfo &info);

@@ -1,5 +1,6 @@
 #include <directx/d3dx12.h>
 #include "basic.h"
+#include "ProtoEngine/Core/Core.h"
 #include "ProtoEngine/Component/MeshRender/Mesh.h"
 #include "ProtoEngine/RHI/DX12/Resource/SwapChain.h"
 #include "ProtoEngine/Resource/Mesh/Mesh.h"
@@ -16,8 +17,8 @@ void GPULayout::Init(ID3D12Device *device)
 {
     auto compiler = ProtoEngine::rhi::dx12::ShaderCompiler::GetInstance();
 
-    auto vs = compiler->Compile("../Shaders/basic.hlsl", "VSMain", "vs_6_0");
-    auto ps = compiler->Compile("../Shaders/basic.hlsl", "PSMain", "ps_6_0");
+    auto vs = compiler->Compile("../Shader/Basic/basic.hlsl", "VSMain", "vs_6_0");
+    auto ps = compiler->Compile("../Shader/Basic/basic.hlsl", "PSMain", "ps_6_0");
 
     vs.GetRootSignature(device, m_Signature);
 
@@ -29,13 +30,14 @@ void GPULayout::Init(ID3D12Device *device)
     pipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
     pipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
     pipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+    pipelineStateDesc.DepthStencilState.DepthEnable = false;
     pipelineStateDesc.SampleMask = UINT_MAX;
     pipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     pipelineStateDesc.NumRenderTargets = 1;
     pipelineStateDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-    pipelineStateDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+    // pipelineStateDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
     pipelineStateDesc.SampleDesc.Count = 1;
-    PE_ASSERT(SUCCEEDED(device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_PSO))));
+    ThrowIfFailed(device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(&m_PSO)));
 }
 
 BasicTriangleApp::BasicTriangleApp() :
@@ -51,6 +53,9 @@ void BasicTriangleApp::Init()
 {
     context = std::make_unique<ProtoEngine::rhi::dx12::GPUContext>();
     cmdPool = std::make_unique<ProtoEngine::rhi::dx12::CommandPool>(*context);
+    auto allocator = ProtoEngine::rhi::dx12::ResourceAllocator::GetInstance();
+    allocator->Init(context->GetDevice());
+
     swapchain = std::make_unique<ProtoEngine::rhi::dx12::SwapChain>(*context, m_Width, m_Height);
 
     LoadPipeline();
@@ -69,23 +74,22 @@ void BasicTriangleApp::LoadPipeline()
 
 void BasicTriangleApp::LoadAssets()
 {
-    // auto container = std::make_unique<ProtoEngine::rhi::dx12::MeshContainer>(context->GetDevice());
-    // container->AddVertices(vertices);
-    // container->AddIndices(indices);
-    // container->Upload();
     ProtoEngine::Framework::Entity entity("NDC Triangle");
     auto meshComponent = std::make_shared<ProtoEngine::Component::Mesh>();
 
-    meshComponent->Init(ProtoEngine::resource::MeshType::Triangle);
+    meshComponent->Init(context->GetDevice());
+    meshComponent->LoadMesh(ProtoEngine::resource::MeshType::Triangle);
 
     entity.AddComponent(meshComponent);
+
+    world.AddEntity(entity);
 }
 
 void BasicTriangleApp::Update()
 {
 }
 
-void BasicTriangleApp::Render()
+void BasicTriangleApp::Record()
 {
     auto command = cmdPool->Allocate(ProtoEngine::rhi::dx12::CommandType::Graphics, 0);
 
@@ -94,7 +98,6 @@ void BasicTriangleApp::Render()
     command.SetScreenView({1920, 1080}, {1920, 1080});
 
     auto [viewId, resId] = swapchain->GetCurrentRT();
-    command.ClearRT({viewId}, std::nullopt);
 
     // Convert
     auto allocator = ProtoEngine::rhi::dx12::ResourceAllocator::GetInstance();
@@ -103,23 +106,47 @@ void BasicTriangleApp::Render()
     command.ResourceBarrier({barrier1});
 
     // DrawCall
+    command.ClearRT({viewId}, std::nullopt);
+
     world.Render(command);
 
     // Convert
     auto barrier2 = CD3DX12_RESOURCE_BARRIER::Transition(resource, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
     command.ResourceBarrier({barrier2});
 
-    context->Submit({command});
+    context->Submit({&command});
+}
+
+void BasicTriangleApp::Render()
+{
+    Record();
+    frameSync->Signal(context.get());
 
     swapchain->Present();
 
-    frameSync->Signal(context.get());
     frameSync->Wait();
-    // End Render
+
+    // Sleep(100);
+
+    // TODO: cmdPool->Free(ProtoEngine::rhi::dx12::CommandType::Graphics, command.ID());
+}
+
+void BasicTriangleApp::AfterTick()
+{
     cmdPool->EndFrame();
     swapchain->MoveNextFrame();
 }
 
 void BasicTriangleApp::Shutdown()
 {
+    // Resource Cleanup
+
+    // Shader Cleanup
+    frameSync = nullptr;
+    cmdPool = nullptr;
+    layout = nullptr;
+    ProtoEngine::rhi::dx12::ShaderCompiler::GetInstance()->Release();
+
+    swapchain = nullptr;
+    context = nullptr;
 }

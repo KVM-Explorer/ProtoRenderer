@@ -10,7 +10,6 @@ void TriangleMesh::Init()
         Vertex{Vec3{-0.5f, -0.5f, 0.0f}, Color{1.0f, 0.0f, 0.0f, 1.0f}},
         Vertex{Vec3{0.5f, -0.5f, 0.0f}, Color{0.0f, 1.0f, 0.0f, 1.0f}},
         Vertex{Vec3{0.0f, 0.5f, 0.0f}, Color{0.0f, 0.0f, 1.0f, 1.0f}},
-
     };
 
     m_Vertices = std::vector<Vertex>(vertices.begin(), vertices.end());

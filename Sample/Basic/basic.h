@@ -3,6 +3,7 @@
 #include "ProtoEngine/Engine.h"
 #include "ProtoEngine/Framework/World/World.h"
 #include "ProtoEngine/Framework/World/Entity.h"
+#include "ProtoEngine/RHI/DX12/Resource/DefaultBuffer.h"
 
 class GPULayout : public ProtoEngine::rhi::dx12::GPUInputLayout {
 public:
@@ -19,6 +20,11 @@ public:
     void Shutdown() override;
     void Update() override;
     void Render() override;
+    void AfterTick() override;
+
+    void Test();
+
+    void Record();
 
 private:
     std::unique_ptr<ProtoEngine::rhi::dx12::GPUContext> context;
@@ -30,4 +36,7 @@ private:
     std::unique_ptr<ProtoEngine::rhi::dx12::FrameSyncPoint> frameSync;
 
     ProtoEngine::Framework::World world;
+
+private:
+    std::unique_ptr<ProtoEngine::rhi::dx12::DefaultBuffer> MeshBuffer;
 };

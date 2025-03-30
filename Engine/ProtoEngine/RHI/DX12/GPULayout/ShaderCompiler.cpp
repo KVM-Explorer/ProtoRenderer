@@ -1,5 +1,6 @@
 #include "ProtoEngine/RHI/DX12/GPULayout/ShaderCompiler.h"
 #include "ProtoEngine/Core/Core.h"
+#include "ProtoEngine/Platform/FilePath.h"
 namespace ProtoEngine::rhi::dx12 {
 
 std::shared_ptr<ShaderCompiler> ShaderCompiler::m_Instance = nullptr;
@@ -31,8 +32,10 @@ ShaderCompiler::ShaderCompiler()
 
 ShaderCompiler::~ShaderCompiler()
 {
-    m_Utils->Release();
+    m_ShaderData.clear();
+    m_IncludeHandler->Release();
     m_Compiler->Release();
+    m_Utils->Release();
 }
 
 std::shared_ptr<ShaderCompiler> ShaderCompiler::GetInstance()
@@ -43,9 +46,24 @@ std::shared_ptr<ShaderCompiler> ShaderCompiler::GetInstance()
     return m_Instance;
 }
 
+void ShaderCompiler::Release()
+{
+    m_Instance = nullptr;
+}
+
+uint64 ShaderCompiler::GetShaderHash(const std::string &shaderPath, const std::string &entryPoint, const std::string &target)
+{
+    return std::hash<std::string>{}(shaderPath + entryPoint + target);
+}
+
 Shader ShaderCompiler::Compile(const std::string &shaderPath, const std::string &entryPoint, const std::string &target)
 {
-    PE_LOG_DEBUG("Compiling shader...");
+    PE_LOG_DEBUG("Compiling shader {}, EntryPoint {}, ShaderVersion {}", shaderPath, entryPoint, target);
+
+    auto filePath = Platform::FilePath(shaderPath);
+    if (!filePath.Exists()) {
+        PE_THROW("Shader file not found: " + shaderPath);
+    }
 
     auto entryPointWStr = Core::Utils::string2wstring(entryPoint);
     auto targetWStr = Core::Utils::string2wstring(target);
@@ -61,7 +79,7 @@ Shader ShaderCompiler::Compile(const std::string &shaderPath, const std::string 
         DXC_ARG_ALL_RESOURCES_BOUND,
     };
 
-    if constexpr(PE_SHADER_DEBUG) {
+    if constexpr (PE_SHADER_DEBUG) {
         compilationArguments.push_back(DXC_ARG_DEBUG);
         compilationArguments.push_back(DXC_ARG_SKIP_OPTIMIZATIONS);
     } else {
@@ -69,7 +87,7 @@ Shader ShaderCompiler::Compile(const std::string &shaderPath, const std::string 
     }
 
     ComPtr<IDxcBlobEncoding> sourceBlob;
-    PE_ASSERT(m_Utils->LoadFile(shaderPathWStr.c_str(), nullptr, &sourceBlob));
+    ThrowIfFailed(m_Utils->LoadFile(shaderPathWStr.c_str(), nullptr, &sourceBlob));
 
     DxcBuffer sourceBuffer{};
     sourceBuffer.Ptr = sourceBlob->GetBufferPointer();
@@ -105,14 +123,19 @@ Shader ShaderCompiler::Compile(const std::string &shaderPath, const std::string 
 
     ComPtr<IDxcBlob> shaderBlob;
     result->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
-    m_Blobs.push_back(std::move(shaderBlob));
 
     ShaderInfo info{
         shaderDesc,
         reflection.Get(),
-        m_Blobs.back().Get(),
+        shaderBlob.Get(),
         GetShaderType(entryPoint),
     };
+
+    auto hashCode = GetShaderHash(shaderPath, entryPoint, target);
+    m_ShaderData[hashCode].desc = shaderDesc;
+    m_ShaderData[hashCode].blob = shaderBlob;
+    m_ShaderData[hashCode].reflection = reflection;
+    m_ShaderData[hashCode].type = GetShaderType(entryPoint);
 
     return Shader(info);
 }

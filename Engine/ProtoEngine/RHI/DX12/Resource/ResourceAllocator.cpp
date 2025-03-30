@@ -1,4 +1,6 @@
 #include "ProtoEngine/RHI/DX12/Resource/ResourceAllocator.h"
+#include "ProtoEngine/Core/Log/Log.h"
+#include "ProtoEngine/Core/Core.h"
 
 namespace ProtoEngine::rhi::dx12 {
 
@@ -20,12 +22,21 @@ void ResourceAllocator::Init(ID3D12Device *device)
     m_UAVHeap = std::make_unique<UAVHeap>(device, 1024, false);
 }
 
+ID3D12Resource *ResourceAllocator::GetResource(uint32 index) const
+{
+    if (index >= m_Resources.size()) {
+        PE_LOG_ERROR("Resource index out of range");
+    }
+    return m_Resources[index].Get();
+}
+
 AllocInfo ResourceAllocator::RegisterResource(ComPtr<ID3D12Resource> resource, ResourceInfo &info)
 {
     AllocInfo ret;
 
     ret.resourceIndex = m_Resources.size();
 
+    resource->SetName(Core::Utils::string2wstring(info.name).c_str());
     if (info.usage | static_cast<uint32>(ResourceUsage::RTV)) {
         ret.RTV = m_RTVHeap->Add(resource.Get(), info.rtvDesc);
     }

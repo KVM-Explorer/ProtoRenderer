@@ -19,7 +19,7 @@ enum ResourceUsage : uint32 {
 };
 
 struct ResourceInfo {
-    std::string_view name;
+    std::string name;
     uint32 usage;
     std::optional<D3D12_RENDER_TARGET_VIEW_DESC> rtvDesc = std::nullopt;
     std::optional<D3D12_DEPTH_STENCIL_VIEW_DESC> dsvDesc = std::nullopt;
@@ -34,7 +34,7 @@ public:
     void Init(ID3D12Device *device);
 
     AllocInfo RegisterResource(ComPtr<ID3D12Resource> resource, ResourceInfo &info);
-    ID3D12Resource *GetResource(uint32 index) const { return m_Resources[index].Get(); };
+    ID3D12Resource *GetResource(uint32 index) const;
     RTVHeap *RTV() { return m_RTVHeap.get(); }
     DSVHeap *DSV() { return m_DSVHeap.get(); }
 

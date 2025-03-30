@@ -2,7 +2,7 @@ add_rules("mode.debug", "mode.release")
 
 set_languages("c++20")
 
--- add_rules("plugin.vsxmake.autoupdate", {outputdir = ".vscode"})
+-- add_rules("plugin.vsxmake.autoupdate")
 
 
 -- 更新compile_commands.json

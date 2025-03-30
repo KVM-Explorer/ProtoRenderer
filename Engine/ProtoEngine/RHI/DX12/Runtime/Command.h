@@ -25,13 +25,17 @@ enum class CommandType {
     TypeNum
 };
 
+class CommandPool;
 class Command {
 public:
-    Command(uint32 poolIndex, CommandType type, ID3D12GraphicsCommandList *commandList) :
+    Command(uint32 poolIndex, CommandType type, ID3D12GraphicsCommandList *commandList,CommandPool *pool) :
         m_PoolIndex(poolIndex), m_Type(type),
-        m_CommandList(commandList)
+        m_CommandList(commandList),
+        m_Pool(pool)
     {}
-    virtual ~Command() = default;
+    virtual ~Command();
+
+    uint32 ID() const { return m_PoolIndex; }
 
     void SetScreenView(const ScreenRect &viewPort, const ScreenRect &scissor);
     void BindGPULayout(GPUInputLayout *layout);
@@ -44,12 +48,15 @@ public:
     CommandType Type() const { return m_Type; }
     ID3D12CommandList *Get() const { return m_CommandList; }
 
+    void Close() { m_CommandList->Close(); }
+
 private:
     uint32 m_TaskOrder;
-
+    bool m_Recording = true;
     uint32 m_PoolIndex;
     CommandType m_Type;
     ID3D12GraphicsCommandList *m_CommandList;
+    CommandPool *m_Pool;
 };
 
 class GPUContext;
@@ -64,7 +71,7 @@ public:
     ~CommandPool() {};
 
     Command Allocate(CommandType type, uint32 taskOrder);
-    void Free(uint32 index);
+    void Free(CommandType type, uint32 index); // Free Allocator
 
     void BeginFrame();
     void EndFrame();
@@ -72,10 +79,14 @@ public:
 private:
     ID3D12GraphicsCommandList *GetCommandList(ID3D12CommandAllocator *allocator, D3D12_COMMAND_LIST_TYPE type);
 
+    GPUContext &m_Context;
+
+    // Allocator
     std::array<std::queue<uint32>, static_cast<uint32>(CommandType::TypeNum)> m_FreeIndices;
     std::array<std::unordered_map<uint32, bool>, static_cast<uint32>(CommandType::TypeNum)> m_UsedIndices;
-    GPUContext &m_Context;
     std::array<std::vector<ComPtr<ID3D12CommandAllocator>>, static_cast<uint32>(CommandType::TypeNum)> m_Allocators; // 帧、并行数据
+
+    // Command List
     std::queue<ComPtr<ID3D12GraphicsCommandList>> m_FreeCommands;
     std::queue<ComPtr<ID3D12GraphicsCommandList>> m_UsedCommands;
 };

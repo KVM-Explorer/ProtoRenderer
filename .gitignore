@@ -36,6 +36,7 @@
 
 bin/*
 .vscode/
+Design/
 
 # Xmake
 # Xmake cache
@@ -47,4 +48,8 @@ build/
 
 # Assets
 Assets/
+
+# VSXmake
+.vs/
+vsxmake*/
 

@@ -12,6 +12,7 @@ public:
     virtual void Shutdown() = 0;
     virtual void Update() = 0;
     virtual void Render() = 0;
+    virtual void AfterTick() = 0;
 
     HWND m_Handle = nullptr;
     uint32 m_Width = 0;

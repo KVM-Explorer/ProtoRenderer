@@ -15,6 +15,7 @@ private:
 
 class ResourceSyncPoint {
 public:
+
     void Signal(GPUContext *context);
     void Wait();
 

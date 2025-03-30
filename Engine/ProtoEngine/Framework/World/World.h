@@ -11,7 +11,7 @@ public:
     void Render(rhi::dx12::Command &command);
     void Update(rhi::dx12::Command &command);
 
-    void AddEntity(Entity &entity);
+    void AddEntity(Entity &entity) { m_Entities.push_back(entity); };
     void RemoveEntity(Entity &entity);
 
 private:

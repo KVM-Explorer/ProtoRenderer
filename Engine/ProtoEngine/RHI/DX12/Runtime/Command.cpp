@@ -5,12 +5,11 @@
 #include "ProtoEngine/RHI/DX12/Resource/ResourceAllocator.h"
 namespace ProtoEngine::rhi::dx12 {
 
-CommandPool::CommandPool(GPUContext &context) :
-    m_Context(context)
+Command::~Command()
 {
-    auto device = context.m_Device->Get();
+    m_Pool->Free(m_Type, m_PoolIndex);
+    // TODO: Free After Resource Sync
 }
-
 void Command::BindGPULayout(GPUInputLayout *layout)
 {
     auto pso = layout->GetPSO();
@@ -18,10 +17,10 @@ void Command::BindGPULayout(GPUInputLayout *layout)
     m_CommandList->SetPipelineState(pso);
     m_CommandList->SetGraphicsRootSignature(signature);
 
-    auto allocator = ResourceAllocator::GetInstance();
-    auto heaps = std::to_array({allocator->RTV()->GetHeap()});
+    // auto allocator = ResourceAllocator::GetInstance();
+    // auto heaps = std::to_array({allocator->RTV()->GetHeap()});
 
-    m_CommandList->SetDescriptorHeaps(heaps.size(), heaps.data());
+    // m_CommandList->SetDescriptorHeaps(heaps.size(), heaps.data());
     m_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
@@ -75,6 +74,12 @@ void Command::ResourceBarrier(std::vector<D3D12_RESOURCE_BARRIER> barriers)
     m_CommandList->ResourceBarrier(static_cast<uint32>(barriers.size()), barriers.data());
 }
 
+CommandPool::CommandPool(GPUContext &context) :
+    m_Context(context)
+{
+    auto device = context.m_Device->Get();
+}
+
 Command CommandPool::Allocate(CommandType type, uint32 taskOrder)
 {
     if (!m_FreeIndices[static_cast<uint32>(type)].empty()) {
@@ -91,10 +96,10 @@ Command CommandPool::Allocate(CommandType type, uint32 taskOrder)
 
         auto cmdList = GetCommandList(allocator.Get(), static_cast<D3D12_COMMAND_LIST_TYPE>(type));
         // Bind cmdList to Command
-        return Command(index, type, cmdList);
+        return Command(index, type, cmdList, this);
     }
 
-    PE_LOG_INFO("CommandPool is empty, try to expand Pool");
+    PE_LOG_INFO("CommandPool is empty, try to expand Command Allocator");
 
     auto device = m_Context.m_Device->Get();
     D3D12_COMMAND_LIST_TYPE listType;
@@ -125,16 +130,23 @@ Command CommandPool::Allocate(CommandType type, uint32 taskOrder)
     ComPtr<ID3D12CommandAllocator> allocator;
     ComPtr<ID3D12GraphicsCommandList> commandList;
 
-    PE_ASSERT(device->CreateCommandAllocator(listType, IID_PPV_ARGS(&allocator)));
+    ThrowIfFailed(device->CreateCommandAllocator(listType, IID_PPV_ARGS(&allocator)));
     auto cmdList = GetCommandList(allocator.Get(), listType);
 
     auto index = static_cast<uint32>(m_Allocators[static_cast<uint32>(type)].size());
     m_Allocators[static_cast<uint32>(type)].push_back(allocator);
     m_UsedIndices[static_cast<uint32>(type)][index] = true;
 
-    return Command(index, type, cmdList);
+    return Command(index, type, cmdList, this);
 }
 
+void CommandPool::Free(CommandType type, uint32 index)
+{
+    if (!m_UsedIndices[static_cast<uint32>(type)][index]) PE_THROW("Trying to free an unused command");
+    m_UsedIndices[static_cast<uint32>(type)][index] = false;
+
+    m_FreeIndices[static_cast<uint32>(type)].push(index);
+}
 void CommandPool::EndFrame()
 {
     PE_LOG_DEBUG("CommandPool EndFrame Swap Free and Used CommandList");
@@ -147,7 +159,7 @@ ID3D12GraphicsCommandList *CommandPool::GetCommandList(ID3D12CommandAllocator *a
         auto cmdList = m_FreeCommands.front();
         m_FreeCommands.pop();
         cmdList->Reset(allocator, nullptr);
-        cmdList->Close();
+        // cmdList->Close();
 
         m_UsedCommands.push(cmdList);
 
@@ -155,8 +167,8 @@ ID3D12GraphicsCommandList *CommandPool::GetCommandList(ID3D12CommandAllocator *a
     } else {
         ComPtr<ID3D12GraphicsCommandList> cmdList;
         auto device = m_Context.m_Device->Get();
-        PE_ASSERT(device->CreateCommandList(0, type, allocator, nullptr, IID_PPV_ARGS(&cmdList)));
-        PE_ASSERT(cmdList->Close());
+        ThrowIfFailed(device->CreateCommandList(0, type, allocator, nullptr, IID_PPV_ARGS(&cmdList)));
+        // ThrowIfFailed(cmdList->Close());
 
         m_UsedCommands.push(cmdList);
         return cmdList.Get();

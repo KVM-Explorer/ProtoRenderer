@@ -19,7 +19,7 @@ protected:
 
 protected:
     ComPtr<ID3D12Resource> m_Resource;
-
+    void SetName(std::string_view name){m_Name = name;}
 private:
     static inline uint64 BufferID = 0;
     uint64 m_ID;

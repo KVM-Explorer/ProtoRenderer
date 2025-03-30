@@ -31,8 +31,9 @@ Log::Log(LogLevel level)
     logSinks.emplace_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
     logSinks.emplace_back(std::make_shared<spdlog::sinks::rotating_file_sink_mt>("ProtoEngine.txt", 1024 * 1024 * 10, 3)); // 10MB max file size, 3 rotated files
 
-    logSinks[0]->set_pattern("%^[%T] %n: %v%$");
-    logSinks[1]->set_pattern("[%T] [%l] %n: %v");
+    logSinks[0]->set_pattern("%^[%T] [%l] %n: %v%$"); 
+    logSinks[1]->set_pattern("[%T] [%l] %n: %v"); 
+    // 颜色、时间 、日期 、等级 日志内容
 
     auto logLevel = GetLevel(level);
 

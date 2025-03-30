@@ -35,20 +35,21 @@ void GPUContext::Init()
     device->CreateCommandQueue(&copyQueueDesc, IID_PPV_ARGS(&CopyQueue));
 }
 
-void GPUContext::Submit(std::vector<Command> commands)
+void GPUContext::Submit(std::vector<Command *> commands)
 {
     if (commands.empty()) PE_THROW("Commands is empty");
     auto device = m_Device->Get();
     auto gfxQueue = GfxQueue.Get();
     auto copyQueue = CopyQueue.Get();
 
+    // Finish and Free Command
     std::vector<ID3D12CommandList *> cmdLists;
-
     for (auto &command : commands) {
-        cmdLists.push_back(command.Get());
+        command->Close();
+        cmdLists.push_back(command->Get());
     }
 
-    switch (commands[0].Type()) {
+    switch (commands[0]->Type()) {
     case CommandType::Graphics: {
         gfxQueue->ExecuteCommandLists(static_cast<UINT>(cmdLists.size()), cmdLists.data());
         break;

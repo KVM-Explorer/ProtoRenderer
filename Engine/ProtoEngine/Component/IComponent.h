@@ -10,7 +10,8 @@ enum class ComponentType {
     Light,
     Material,
     UI,
-    Custom
+    Custom,
+    Num
 };
 
 class IComponent {

@@ -106,8 +106,8 @@ void Shader::GetRootSignature(ID3D12Device *device, ComPtr<ID3D12RootSignature> 
 
     ComPtr<ID3DBlob> signature;
     ComPtr<ID3DBlob> error;
-    PE_ASSERT(D3DX12SerializeVersionedRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signature, &error));
-    PE_ASSERT(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
+    ThrowIfFailed(D3DX12SerializeVersionedRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signature, &error));
+    ThrowIfFailed(device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)));
 
     if (error) {
         PE_LOG_ERROR("Error creating root signature: {}", (char *)error->GetBufferPointer());
