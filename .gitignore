@@ -32,11 +32,13 @@
 *.app
 *.md
 
+# draw.io
+*.drawio.bkp
 
 
 bin/*
 .vscode/
-Design/
+
 
 # Xmake
 # Xmake cache
