@@ -9,6 +9,7 @@ public:
     virtual ~GPUContext();
 
     void Submit(std::vector<Command*> commands);
+    void WaitForIdle();
     ID3D12Device *GetDevice() const { return m_Device->Get(); }
 
 protected:

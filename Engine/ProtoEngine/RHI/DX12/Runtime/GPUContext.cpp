@@ -1,5 +1,6 @@
 #include "ProtoEngine/RHI/DX12/Runtime/GPUContext.h"
 #include "ProtoEngine/Core/Utils/Exception.h"
+#include "ProtoEngine/RHI/DX12/Runtime/Sync.h"
 
 namespace ProtoEngine::rhi::dx12 {
 
@@ -65,6 +66,13 @@ void GPUContext::Submit(std::vector<Command *> commands)
         PE_THROW("Unknown command type");
     }
     }
+}
+
+void GPUContext::WaitForIdle()
+{
+    FrameSyncPoint syncPoint(m_Device->Get());
+    syncPoint.Signal(this);
+    syncPoint.Wait();
 }
 
 } // namespace ProtoEngine::rhi::dx12

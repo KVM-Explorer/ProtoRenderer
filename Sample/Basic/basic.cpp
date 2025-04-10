@@ -140,12 +140,14 @@ void BasicTriangleApp::AfterTick()
 void BasicTriangleApp::Shutdown()
 {
     // Resource Cleanup
+    context->WaitForIdle();
 
     // Shader Cleanup
     frameSync = nullptr;
+    ProtoEngine::rhi::dx12::ShaderCompiler::GetInstance()->Release();
+
     cmdPool = nullptr;
     layout = nullptr;
-    ProtoEngine::rhi::dx12::ShaderCompiler::GetInstance()->Release();
 
     swapchain = nullptr;
     context = nullptr;
