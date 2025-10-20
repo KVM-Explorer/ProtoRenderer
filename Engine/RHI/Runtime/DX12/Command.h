@@ -1,5 +1,6 @@
 #pragma once
 #include <stdafx.h>
+#include "Core/Meta.h"
 namespace ProtoEngine::rhi::dx12 {
 
 struct ViewPort {
@@ -12,6 +13,11 @@ struct ViewPort {
         TopLeftX(topLeftX), TopLeftY(topLeftY), Width(width), Height(height) {}
     ViewPort(float width, float height) :
         TopLeftX(0), TopLeftY(0), Width(width), Height(height) {}
+
+    ViewPort() :
+        TopLeftX(0), TopLeftY(0), Width(0), Height(0) {}
+
+    static ViewPort Default() { return ViewPort(0, 0, Core::GEngine.Width, Core::GEngine.Height); }
 
     void ClearRT(std::vector<uint32> targets);
 };
@@ -30,7 +36,7 @@ public:
     const ViewPort &GetViewPort() const { return m_ViewPort; }
 
     CommandType Type() const { return m_Type; }
-    ID3D12CommandList* Get() const { return m_CommandList.Get(); }
+    ID3D12CommandList *Get() const { return m_CommandList.Get(); }
 
 private:
     ViewPort m_ViewPort;

@@ -1,7 +1,12 @@
 #include <iostream>
 #include "Core/Log/Log.h"
-int main(int argc, char **argv)
+#include "Launcher.h"
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    std::cout << "hello world!" << std::endl;
+    ProtoEngine::Launcher::New()
+        .Width(1280)
+        .Height(720)
+        .AppName("ProtoRenderer Basic Sample")
+        .Run();
     return 0;
 }

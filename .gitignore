@@ -44,4 +44,4 @@ build/
 
 # Assets
 Assets/
-
+compile_commands.json
