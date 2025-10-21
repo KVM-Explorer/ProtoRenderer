@@ -32,7 +32,13 @@
 *.app
 *.md
 
+# draw.io
+*.drawio.bkp
+
+
+bin/*
 .vscode/
+
 
 # Xmake
 # Xmake cache
@@ -44,4 +50,9 @@ build/
 
 # Assets
 Assets/
+
+# VSXmake
+.vs/
+vsxmake*/
+
 compile_commands.json
