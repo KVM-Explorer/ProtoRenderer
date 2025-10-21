@@ -62,13 +62,13 @@ private:
         return *m_Instance;
     }
 
-    void PreInit();
-    void Init();
-    void PostInit();
+    virtual void PreInit();
+    virtual void Init();
+    virtual void PostInit();
 
-    void EngineLoop();
+    virtual void EngineLoop();
 
-    void Shutdown();
+    virtual void Shutdown();
 };
 
 }; // namespace ProtoEngine

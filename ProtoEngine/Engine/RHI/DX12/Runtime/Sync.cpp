@@ -1,6 +1,7 @@
+
+#include "Engine/Core/Core.h"
 #include "Engine/RHI/DX12/Runtime/Sync.h"
 #include "Engine/RHI/DX12/Runtime/GPUContext.h"
-#include "Engine/Core/Core.h"
 namespace ProtoEngine::rhi::dx12 {
 
 FrameSyncPoint::FrameSyncPoint(ID3D12Device *device)

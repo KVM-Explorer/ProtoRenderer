@@ -1,6 +1,7 @@
 #pragma once
 #include <stdafx.h>
 #include <format>
+#include "directx/d3d12.h"
 namespace ProtoEngine::rhi::dx12 {
 
 class Buffer {

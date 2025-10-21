@@ -3,6 +3,7 @@
 #include <stdafx.h>
 #include <dxcapi.h>
 #include <d3d12shader.h>
+#include <directx/d3dx12_core.h>
 
 namespace ProtoEngine::rhi::dx12 {
 
@@ -29,7 +30,7 @@ public:
     ~Shader();
 
     D3D12_INPUT_LAYOUT_DESC GetInputLayout();
-    D3D12_SHADER_BYTECODE GetShaderByteCode() ;
+    D3D12_SHADER_BYTECODE GetShaderByteCode();
     void GetRootSignature(ID3D12Device *device, ComPtr<ID3D12RootSignature> &rootSignature);
 
 private:

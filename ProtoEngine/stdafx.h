@@ -24,27 +24,28 @@ using uint64 = uint64_t;
 using int32 = int32_t;
 using int64 = int64_t;
 
-#define RHI_DX12
+using std::shared_ptr;
+using std::unique_ptr;
+using std::make_shared;
+using std::make_unique;
+using std::chrono::steady_clock;
 
-#ifdef RHI_DX12
+// #define RHI_DX12
+
+// #ifdef RHI_DX12
 
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
-#include <d3d12.h>
 #include <dxgi1_6.h>
 #include <wrl.h>
 
 using Microsoft::WRL::ComPtr;
 
-#endif
+// #endif
 
 #ifdef _DEBUG
 #define PE_SHADER_DEBUG 1
 #else
 #define PE_SHADER_DEBUG 0
 #endif
-using std::shared_ptr;
-using std::unique_ptr;
-using std::make_shared;
-using std::make_unique;
-using std::chrono::steady_clock;
+

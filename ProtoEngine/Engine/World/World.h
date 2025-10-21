@@ -1,6 +1,6 @@
 #pragma once
 #include <stdafx.h>
-#include "Engine/Framework/World/Entity.h"
+#include "Engine/World/Entity.h"
 #include "Engine/RHI/DX12/DX12.h"
 namespace ProtoEngine::Framework {
 class World {

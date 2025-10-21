@@ -34,7 +34,6 @@ namespace ProtoEngine {
 
 std::unique_ptr<Launcher> Launcher::m_Instance = nullptr;
 
-
 void Launcher::Run()
 {
     // LoadingInit();//
@@ -60,6 +59,9 @@ void Launcher::PreInit()
     // Step2: Load command line arguments
     std::vector<std::wstring> args;
     if (ParseCmdLineArgs(args)) {
+        for (size_t i = 0; i < args.size(); ++i) {
+            // TODO: Parse Args
+        }
     }
 
     // Step3: Load app set args
@@ -74,13 +76,14 @@ void Launcher::PreInit()
                            .Height(720)
                            .Title("ProtoRenderer")
                            .Build();
-
-    // Step5: Init RHI
+    Core::GEngine.WindowHandle = m_WindowInstance->GetHwnd();
 }
 
 void Launcher::Init()
 {
-    // Bind Pipeline/RHI & Windows
+    // Step1: Init RHI
+
+    // Step2: Bind Pipeline/RHI & Windows
 }
 
 void Launcher::PostInit()

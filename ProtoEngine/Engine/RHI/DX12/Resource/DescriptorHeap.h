@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdafx.h>
-
+#include <directx/d3dx12_core.h>
 namespace ProtoEngine::rhi::dx12 {
 
 class DescriptorHeap {

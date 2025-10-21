@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include <directx/d3dx12_core.h>
 #include "Engine/RHI/Interface/IDevice.h"
 
 namespace ProtoEngine::rhi::dx12 {
